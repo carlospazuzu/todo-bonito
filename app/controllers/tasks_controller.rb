@@ -64,27 +64,7 @@ class TasksController < ApplicationController
 
     task.update!(status: :completed, completed_at: Time.current)
 
-    notifications = TaskNotificationDecorator.new
-    
-    if task.user.notification_preferences['task_completed'].present?
-      if task.user.notification_preferences['task_completed'].include?('email')
-        notifications = MailNotificationDecorator.new(notifications)
-      end
-
-      if task.user.notification_preferences['task_completed'].include?('sms')
-        notifications = SmsNotificationDecorator.new(notifications)        
-      end
-
-      if task.user.notification_preferences['task_completed'].include?('telegram')
-        notifications = TelegramNotificationDecorator.new(notifications)        
-      end
-
-      if task.user.notification_preferences['task_completed'].include?('whatsapp')
-        notifications = WhatsappNotificationDecorator.new(notifications)        
-      end
-    end
-    
-    notifications.notify(task)
+    IssueNotification.call(task:)
 
     render(json: TaskSerializer.new(task, user).as_json)
   end
